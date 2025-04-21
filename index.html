@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Code Degree Lookup</title>
+    <title>Arabic Degree System</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -84,6 +84,24 @@
             color: #777;
             font-size: 14px;
         }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
     </style>
 </head>
 <body>
@@ -95,35 +113,49 @@
             <input type="text" id="codeInput" placeholder="Enter the code to lookup...">
         </div>
         
-        <button id="lookupBtn">Look Up Degree</button>
+        <button id="lookupBtn">Look Up</button>
         
         <div id="result" class="result">
             <div id="resultText"></div>
         </div>
         
         <!-- <div class="data-management">
-            <h2>Manage Code-Degree Data</h2>
-            <p>Enter code-degree pairs, one per line, in the format "code,degree":</p>
+            <h2>Manage Code Data</h2>
+            <p>Enter code, name, and degree, one per line, in the format "code,name,degree":</p>
             <textarea id="dataInput" placeholder="Example:
-CS101,95
-MTH202,88
-PHY301,76"></textarea>
+CS101,John Smith,95
+MTH202,Jane Doe,88
+PHY301,Alex Johnson,76"></textarea>
             <button id="saveDataBtn">Save Data</button>
+            
+            <h3>Current Data</h3>
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Degree</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                     Data will be populated here
+                </tbody>
+            </table>
         </div> -->
     </div>
     
     <!-- <div class="footer">
-        <p>Code Degree Lookup System | Created with HTML, CSS, and JavaScript</p>
+        <p>Code Lookup System | Created with HTML, CSS, and JavaScript</p>
     </div> -->
 
     <script>
-        // Store the code-degree pairs
+        // Store the code data (code, name, degree)
         let codeData = {
-            "111": "29",
-            "112": "23",
-            "113": "25",
-            "114": "24",
-            "115": "29.5"
+            "111": { name: "محمد احمد", degree: "25" },
+            "112": { name: "احمد علي محمد", degree: "28" },
+            "113": { name: "عمر السيد محمد", degree: "17" },
+            "114": { name: "رضوى محمد", degree: "29.5" },
+            "115": { name: "اسماعيل عبد السلام", degree: "29" }
         };
 
         // DOM elements
@@ -133,6 +165,7 @@ PHY301,76"></textarea>
         const resultText = document.getElementById('resultText');
         const dataInput = document.getElementById('dataInput');
         const saveDataBtn = document.getElementById('saveDataBtn');
+        const tableBody = document.getElementById('tableBody');
 
         // Event listener for lookup button
         lookupBtn.addEventListener('click', function() {
@@ -144,9 +177,13 @@ PHY301,76"></textarea>
             }
             
             if (codeData[code]) {
-                showResult(`The degree for code <strong>${code}</strong> is: <strong>${codeData[code]}</strong>`, false);
+                showResult(`
+                    <strong>Code:</strong> ${code}<br>
+                    <strong>Name:</strong> ${codeData[code].name}<br>
+                    <strong>Degree:</strong> ${codeData[code].degree}
+                `, false);
             } else {
-                showResult(`No degree found for code <strong>${code}</strong>.`, true);
+                showResult(`No data found for code <strong>${code}</strong>.`, true);
             }
         });
 
@@ -168,24 +205,28 @@ PHY301,76"></textarea>
                 lines.forEach((line, index) => {
                     if (line.trim() === '') return;
                     
+                    // Split by comma, but handle cases where the name might contain commas
                     const parts = line.split(',');
-                    if (parts.length !== 2) {
+                    if (parts.length < 3) {
                         errorLines.push(index + 1);
                         return;
                     }
                     
                     const code = parts[0].trim().toUpperCase();
-                    const degree = parts[1].trim();
+                    // If there are more than 3 parts, assume the extra commas are part of the name
+                    const degree = parts[parts.length - 1].trim();
+                    // Join all middle parts as the name
+                    const name = parts.slice(1, parts.length - 1).join(',').trim();
                     
-                    if (code && degree) {
-                        newData[code] = degree;
+                    if (code && name && degree) {
+                        newData[code] = { name: name, degree: degree };
                     } else {
                         errorLines.push(index + 1);
                     }
                 });
                 
                 if (errorLines.length > 0) {
-                    alert(`Error in data format at line(s): ${errorLines.join(', ')}. Please use the format "code,degree" for each line.`);
+                    alert(`Error in data format at line(s): ${errorLines.join(', ')}. Please use the format "code,name,degree" for each line.`);
                     return;
                 }
                 
@@ -195,18 +236,28 @@ PHY301,76"></textarea>
                 // Populate the textarea with formatted data
                 let formattedData = '';
                 for (const code in codeData) {
-                    formattedData += `${code},${codeData[code]}\n`;
+                    formattedData += `${code},${codeData[code].name},${codeData[code].degree}\n`;
                 }
                 dataInput.value = formattedData.trim();
+                
+                // Update the table
+                updateDataTable();
+                
+                // Save to localStorage
+                localStorage.setItem('codeData', JSON.stringify(codeData));
                 
                 alert('Data saved successfully!');
                 
                 // Update the display for current code if any
                 const currentCode = codeInput.value.trim().toUpperCase();
                 if (currentCode && codeData[currentCode]) {
-                    showResult(`The degree for code <strong>${currentCode}</strong> is: <strong>${codeData[currentCode]}</strong>`, false);
+                    showResult(`
+                        <strong>Code:</strong> ${currentCode}<br>
+                        <strong>Name:</strong> ${codeData[currentCode].name}<br>
+                        <strong>Degree:</strong> ${codeData[currentCode].degree}
+                    `, false);
                 } else if (currentCode) {
-                    showResult(`No degree found for code <strong>${currentCode}</strong>.`, true);
+                    showResult(`No data found for code <strong>${currentCode}</strong>.`, true);
                 }
             } catch (error) {
                 alert('Error saving data: ' + error.message);
@@ -225,6 +276,29 @@ PHY301,76"></textarea>
             }
         }
 
+        // Function to update the data table
+        function updateDataTable() {
+            tableBody.innerHTML = '';
+            
+            for (const code in codeData) {
+                const row = document.createElement('tr');
+                
+                const codeCell = document.createElement('td');
+                codeCell.textContent = code;
+                row.appendChild(codeCell);
+                
+                const nameCell = document.createElement('td');
+                nameCell.textContent = codeData[code].name;
+                row.appendChild(nameCell);
+                
+                const degreeCell = document.createElement('td');
+                degreeCell.textContent = codeData[code].degree;
+                row.appendChild(degreeCell);
+                
+                tableBody.appendChild(row);
+            }
+        }
+
         // Event listener for Enter key in the code input field
         codeInput.addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
@@ -232,13 +306,27 @@ PHY301,76"></textarea>
             }
         });
 
-        // Initialize the textarea with the default data
+        // Initialize the app
         window.addEventListener('load', function() {
+            // Try to load from localStorage first
+            const savedData = localStorage.getItem('codeData');
+            if (savedData) {
+                try {
+                    codeData = JSON.parse(savedData);
+                } catch (e) {
+                    console.error("Error loading saved data", e);
+                }
+            }
+            
+            // Populate the textarea with formatted data
             let formattedData = '';
             for (const code in codeData) {
-                formattedData += `${code},${codeData[code]}\n`;
+                formattedData += `${code},${codeData[code].name},${codeData[code].degree}\n`;
             }
             dataInput.value = formattedData.trim();
+            
+            // Update the table
+            updateDataTable();
         });
     </script>
 </body>
