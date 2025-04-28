@@ -102,18 +102,34 @@
         tr:hover {
             background-color: #f5f5f5;
         }
-        .creator {
-            text-align: center;
-            font-weight: bold;
+        .creator-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
             margin-top: 5px;
+            margin-bottom: 20px;
+        }
+        .creator {
+            font-weight: bold;
             color: #555;
+            margin-left: 10px;
+        }
+        .creator-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 20%;
+            object-fit: fill;
+            border: 2px solid #4CAF50;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Arabic Degree</h1>
-        <p class="creator">مع تحيات: أ/أحمد عبد النبي</p>
+        <div class="creator-container">
+            <img src="https://i.ibb.co/TxrqnpXH/Media.jpg" class="creator-image">
+            <p class="creator">من إعداد: أ/أحمد عبد النبي</p>
+        </div>
         <div class="input-group">
             <label for="codeInput">Enter Code:</label>
             <input type="text" id="codeInput" placeholder="Enter the code to lookup...">
